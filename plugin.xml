@@ -24,10 +24,27 @@
             </feature>
         </config-file>
 
-        <source-file src="src/android/com/megster/cordova/BluetoothSerial.java"
-            target-dir="src/com/megster/cordova"/>
-        <source-file src="src/android/com/megster/cordova/BluetoothSerialService.java"
-            target-dir="src/com/megster/cordova"/>
+        <source-file src="src/android/com/megster/cordova/BluetoothSerial.java" target-dir="src/com/megster/cordova"/>
+        <source-file src="src/android/com/megster/cordova/BluetoothSerialService.java" target-dir="src/com/megster/cordova"/>
+        <source-file src="src/android/com/bluebamboo/util/AppParameters.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/ByteConvert.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/DataConstants.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/DataModel.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/FileOperation.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/FontDefine.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/NumberUtil.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/StringUtil.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/SystemUtil.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/Tracer.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/util/Util.java" target-dir="src/com/bluebamboo/util" />
+        <source-file src="src/android/com/bluebamboo/pockdata/Function.java" target-dir="src/com/bluebamboo/pockdata" />
+        <source-file src="src/android/com/bluebamboo/pockdata/PocketPos.java" target-dir="src/com/bluebamboo/pockdata" />
+        <source-file src="src/android/com/bluebamboo/pockdata/PostDefine.java" target-dir="src/com/bluebamboo/pockdata" />
+        <source-file src="src/android/com/bluebamboo/pockdata/PostMessage.java" target-dir="src/com/bluebamboo/pockdata" />
+        <source-file src="src/android/com/bluebamboo/pockdata/SmartPost.java" target-dir="src/com/bluebamboo/pockdata" />
+        <source-file src="src/android/com/bluebamboo/global/Command.java" target-dir="src/com/bluebamboo/global" />
+        <source-file src="src/android/com/bluebamboo/global/Global.java" target-dir="src/com/bluebamboo/global" />
+        <source-file src="src/android/com/bluebamboo/activity/Printer.java" target-dir="src/com/bluebamboo/activity" />
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.BLUETOOTH" />

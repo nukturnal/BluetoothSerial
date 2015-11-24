@@ -5,6 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 import java.util.Arrays;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.util.Date;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -14,6 +18,19 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+
+import com.bluebamboo.activity.Printer;
+import com.bluebamboo.global.Command;
+import com.bluebamboo.global.Global;
+import com.bluebamboo.pockdata.PocketPos;
+import com.bluebamboo.util.AppParameters;
+import com.bluebamboo.util.DataConstants;
+import com.bluebamboo.util.DataModel;
+import com.bluebamboo.util.FileOperation;
+import com.bluebamboo.util.FontDefine;
+import com.bluebamboo.util.StringUtil;
+import com.bluebamboo.util.SystemUtil;
+import com.bluebamboo.util.Util;
 
 /**
  * This class does all the work for setting up and managing Bluetooth
@@ -214,8 +231,143 @@ public class BluetoothSerialService {
             r = mConnectedThread;
         }
         // Perform the write unsynchronized
-        r.write(out);
+        r.write(printDemoContent());
     }
+
+    public byte[] printDemoContent(){
+
+
+			/*********** print head*******/
+			String receiptHead = "************************"+
+			  "   P25/M Receipt Test"+"\n"+
+			  "************************"
+			  +"\n";
+
+			StringBuffer buffer = new StringBuffer();
+			String dateString = (new Date()).toString();
+			String dateTime[] = Util.filterDate(dateString);
+			String month = dateTime[1];
+
+			String monthName = "";
+			if("123456789101112".indexOf(month) != -1) //it means month is digit
+			{
+				int monthIndex = Integer.parseInt(month);
+				monthName = Util.getMonthName(monthIndex);
+				buffer.append(monthName);
+			}
+			else
+			{
+				buffer.append(month);
+			}
+			buffer.append(" ");
+			String dateNum = dateTime[2];
+
+			buffer.append(dateNum);
+
+			buffer.append(", ");
+
+			String year = dateTime[5];
+
+			buffer.append(year);
+
+			String stringDate = buffer.toString();
+
+			buffer = new StringBuffer(20);
+			buffer.append("");
+			buffer.append(Util.getHHMM(dateTime[3])); // hhmm
+
+			String stringTime = buffer.toString();
+
+			StringBuffer receiptHeadBuffer = new StringBuffer(100);
+			receiptHeadBuffer.append(receiptHead);
+			receiptHeadBuffer.append(Util.nameLeftValueRightJustify(stringDate,
+					stringTime, DataConstants.RECEIPT_WIDTH)+"\n");
+			receiptHeadBuffer.append(Util.nameLeftValueRightJustify("SN:",
+					AppParameters.printerSN, DataConstants.RECEIPT_WIDTH)+"\n");
+			receiptHeadBuffer.append(Util.nameLeftValueRightJustify("HW ver:",
+					AppParameters.hardwareVersion, DataConstants.RECEIPT_WIDTH)+"\n");
+			receiptHeadBuffer.append(Util.nameLeftValueRightJustify("SW ver:",
+					AppParameters.softwareVersion, DataConstants.RECEIPT_WIDTH)+"\n");
+			receiptHeadBuffer.append(Util.nameLeftValueRightJustify("Device:",
+					DataModel.platformInfo+" "+DataModel.deviceInfo, DataConstants.RECEIPT_WIDTH));
+			receiptHead = receiptHeadBuffer.toString();
+
+
+			byte[] header = Printer.printfont(receiptHead,FontDefine.FONT_32PX,FontDefine.Align_CENTER,(byte)0x1A,PocketPos.LANGUAGE_ENGLISH);
+
+
+			/*********** print English text*******/
+			StringBuffer sb = new StringBuffer();
+			for(int i=1; i<128; i++)
+				sb.append((char)i);
+			String content = sb.toString().trim();
+
+			byte[] englishchartext24 = Printer.printfont(content,FontDefine.FONT_24PX,FontDefine.Align_CENTER,(byte)0x1A,PocketPos.LANGUAGE_ENGLISH);
+			byte[] englishchartext32= Printer.printfont(content,FontDefine.FONT_32PX,FontDefine.Align_CENTER,(byte)0x1A,PocketPos.LANGUAGE_ENGLISH);
+			byte[] englishchartext24underline= Printer.printfont(content,FontDefine.FONT_24PX_UNDERLINE,FontDefine.Align_CENTER,(byte)0x1A,PocketPos.LANGUAGE_ENGLISH);
+
+
+
+//
+			/*********** print Chinese text*******/
+			content = "��ӭʹ��������ӡ��";
+			byte[] chinesetext24 = Printer.printfont(content,FontDefine.FONT_24PX,FontDefine.Align_CENTER,(byte)0x1A,PocketPos.LANGUAGE_CHINESE);
+			byte[] chinesetext32 = Printer.printfont(content,FontDefine.FONT_32PX,FontDefine.Align_CENTER,(byte)0x1A,PocketPos.LANGUAGE_CHINESE);
+			byte[] chinesetext24underline = Printer.printfont(content,FontDefine.FONT_24PX_UNDERLINE,FontDefine.Align_CENTER,(byte)0x1A,PocketPos.LANGUAGE_CHINESE);
+
+
+			//2D Bar Code
+			byte[] barcode = StringUtil.hexStringToBytes("1d 6b 02 0d 36 39 30 31 32 33 34 35 36 37 38 39 32");
+
+
+			/*********** print Tail*******/
+			String receiptTail =
+			  "Test Completed"+"\n"+
+			  "************************"
+			  +"\n\n\n";;
+
+			byte[] foot = Printer.printfont(receiptTail,FontDefine.FONT_32PX,FontDefine.Align_CENTER,(byte)0x1A,PocketPos.LANGUAGE_ENGLISH);
+
+			byte[] totladata =  new byte[header.length + englishchartext24.length + englishchartext32.length + englishchartext24underline.length +
+			                             + chinesetext24.length + chinesetext32.length + chinesetext24underline.length + barcode.length
+			                             + foot.length
+			                             ];
+		 	int offset = 0;
+			System.arraycopy(header, 0, totladata, offset, header.length);
+			offset += header.length;
+
+			System.arraycopy(englishchartext24, 0, totladata, offset, englishchartext24.length);
+			offset+= englishchartext24.length;
+
+			System.arraycopy(englishchartext32, 0, totladata, offset, englishchartext32.length);
+			offset+=englishchartext32.length;
+
+			System.arraycopy(englishchartext24underline, 0, totladata, offset, englishchartext24underline.length);
+			offset+=englishchartext24underline.length;
+
+
+
+			System.arraycopy(chinesetext24, 0, totladata, offset, chinesetext24.length);
+			offset+=chinesetext24.length;
+
+			System.arraycopy(chinesetext32, 0, totladata, offset, chinesetext32.length);
+			offset+=chinesetext32.length;
+
+			System.arraycopy(chinesetext24underline, 0, totladata, offset, chinesetext24underline.length);
+			offset+=chinesetext24underline.length;
+
+
+			System.arraycopy(barcode, 0, totladata, offset, barcode.length);
+			offset+=barcode.length;
+
+			System.arraycopy(foot, 0, totladata, offset, foot.length);
+			offset+=foot.length;
+
+			byte[] senddata = PocketPos.FramePack(PocketPos.FRAME_TOF_PRINT, totladata, 0, totladata.length);
+
+		    return senddata;
+
+	   }
 
     /**
      * Indicate that the connection attempt failed and notify the UI Activity.
